@@ -19,7 +19,6 @@ Welcome to the Hyper Admin Templates repository (v5.5.0), a comprehensive collec
     * [FastAPI](#fastapi)
     * [FastAPI](#fastapi-1)
   * [Previewing Locally](#previewing-locally)
-  * [Contributing](#contributing)
   * [License](#license)
 
 ---
@@ -177,15 +176,6 @@ Use any static server pointing at `Admin/src`:
 - Node.js: `npx serve Admin/src`
 - VS Code Live Server extension
 
-
-## Contributing
-
-1. Fork the repo.
-2. Create a branch: `git checkout -b feature/my-new-page`
-3. Add or update HTML in `Admin/src` or docs in `Documentation/frameworks`.
-4. Submit a pull request and describe your changes.
-
-
 ## License
 
-This project is released under the [MIT License](./LICENSE).
+This project is released under the [Hyper Admin Dashboard Template License](./LICENSE).
