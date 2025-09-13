@@ -170,11 +170,11 @@ Leverage an LLM (e.g., OpenAI GPT, Azure OpenAI, Anthropic Claude) to automate c
 
 ## Previewing Locally
 
+**Note:** Templates in `Admin/src` use Gulp `@@include()` directives for partials. A basic static server won’t process these directives, so pages may not render fully until includes are resolved.
+
 Use any static server pointing at `Admin/src`:
 
-- Python: `python -m http.server 8000`
-- Node.js: `npx serve Admin/src`
-- VS Code Live Server extension
+* Python 3: `python -m http.server 8000`
 
 ## License
 
