@@ -26,7 +26,7 @@ yourapp/
       ├─ js/
       ├─ images/
       └─ vendor/...
-``` 
+```
 
 ## Flask App Setup
 
@@ -62,6 +62,7 @@ if __name__ == "__main__":
   ```html
   <link href="assets/css/app.min.css" rel="stylesheet">
   ```
+
 - After:
 
   ```html
@@ -95,4 +96,7 @@ if __name__ == "__main__":
 
 - Adjust asset paths if your `static/` folder is nested differently.
 - Use `url_for('static', filename=...)` to generate correct URLs.
-
+- Convert Gulp `@@include()` directives to Jinja2 `{% include %}` syntax.
+- Pass page-specific variables (e.g., `title`) from Flask views and use `{{ title }}` in templates.
+- Consolidate common partials (head-css, footer-scripts) in a base template to avoid duplication.
+- When migrating, copy `Admin/src/assets/` to your Flask `static/assets/` folder and update references accordingly.
