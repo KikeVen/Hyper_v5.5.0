@@ -1,9 +1,0 @@
-I am currently using this code base as a reference repository to assist LLMs with integrating HTML and resource templates into this framework. 
-
-The `base_template/` directory contains rendered completed pages, showing how the pages are viewed by just calling any page with a browser. This can give an LLM or a user what the page rendered will look like.
-
-The templates/ folders follow my Django setup. The templates folder has all the same pages as the base_template/ but these pages are using Django tags and including partials; they should be ready to use, with some modifications. The pages-starter.html in the `templates/` folder is the equivalent of a `base.html`
-
-The static/ folder has all the assets for the templates/ folder. ready to place in a Django project.
-
-The project is in progress. The goal is to research and provide clear, actionable advice for creating an easy-to-understand guide to implementing HTML templates in Django, using this framework (the Hyper templates). That will live in GitHub, accessed and used by humans and LLM services such as “https://context7.com/”. To support this, please review the codebase and research best practices for Django template integration.
