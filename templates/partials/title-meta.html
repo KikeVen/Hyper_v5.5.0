@@ -1,6 +1,6 @@
 {% load static %}
 <meta charset="utf-8" />
-<title>@@title | Hyper - Responsive Bootstrap 5 Admin Dashboard</title>
+<title>{% if title %}{{ title }} | Hyper - Responsive Bootstrap 5 Admin Dashboard{% else %}Hyper - Responsive Bootstrap 5 Admin Dashboard{% endif %}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
 <meta content="Coderthemes" name="author" />

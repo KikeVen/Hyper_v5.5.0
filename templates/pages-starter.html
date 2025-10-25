@@ -24,6 +24,21 @@
 
                     {% include 'partials/page-title.html' with subtitle='Pages' title='Starter' %}
 
+                    <!-- call this page as base.html and extend it in other pages. -->
+                    {% block content %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="header-title">Starter Page</h4>
+                                    <p class="text-muted">This is a starter page template.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endblock content %}
+                    <!-- end of block content -->
+
                 </div> <!-- container -->
 
             </div> <!-- content -->
