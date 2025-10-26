@@ -1,0 +1,58 @@
+{% include 'partials/html.html' %}
+
+<head>
+    {% block title_meta %}
+        {% include 'partials/title-meta.html' with title='' %}
+    {% endblock %}
+
+    {% block head_css %}
+        {% include 'partials/head-css.html' %}
+    {% endblock %}
+</head>
+
+<body>
+    <!-- Begin page -->
+    <div class="wrapper">
+
+        {% include 'partials/menu.html' %}
+
+        <!-- ============================================================== -->
+        <!-- Start Page Content here -->
+        <!-- ============================================================== -->
+
+        <div class="content-page">
+            <div class="content">
+
+                <!-- Start Content-->
+                <div class="container-fluid">
+
+                    {% block page_title %}
+                        {% include 'partials/page-title.html' with subtitle='' title='' %}
+                    {% endblock %}
+
+                    {% block content %}{% endblock %}
+
+                </div> <!-- container -->
+
+            </div> <!-- content -->
+
+            {% include 'partials/footer.html' %}
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- End Page content -->
+        <!-- ============================================================== -->
+
+    </div>
+    <!-- END wrapper -->
+
+    {% include 'partials/right-sidebar.html' %}
+
+    {% block footer_scripts %}
+        {% include 'partials/footer-scripts.html' %}
+    {% endblock %}
+
+</body>
+
+</html>

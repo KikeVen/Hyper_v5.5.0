@@ -1,63 +1,26 @@
-{% include 'partials/html.html' %}
+{% extends 'base.html' %}
 
-<head>
+{% block title_meta %}
     {% include 'partials/title-meta.html' with title='Starter Page' %}
+{% endblock %}
 
+{% block head_css %}
     {% include 'partials/head-css.html' %}
-</head>
+{% endblock %}
 
-<body>
-    <!-- Begin page -->
-    <div class="wrapper">
+{% block page_title %}
+    {% include 'partials/page-title.html' with subtitle='Pages' title='Starter' %}
+{% endblock %}
 
-        {% include 'partials/menu.html' %}
-
-        <!-- ============================================================== -->
-        <!-- Start Page Content here -->
-        <!-- ============================================================== -->
-
-        <div class="content-page">
-            <div class="content">
-
-                <!-- Start Content-->
-                <div class="container-fluid">
-
-                    {% include 'partials/page-title.html' with subtitle='Pages' title='Starter' %}
-
-                    <!-- call this page as base.html and extend it in other pages. -->
-                    {% block content %}
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="header-title">Starter Page</h4>
-                                    <p class="text-muted">This is a starter page template.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endblock content %}
-                    <!-- end of block content -->
-
-                </div> <!-- container -->
-
-            </div> <!-- content -->
-
-            {% include 'partials/footer.html' %}
-
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Starter Page</h4>
+                    <p class="text-muted">This is a starter page template.</p>
+                </div>
+            </div>
         </div>
-
-        <!-- ============================================================== -->
-        <!-- End Page content -->
-        <!-- ============================================================== -->
-
     </div>
-    <!-- END wrapper -->
-
-    {% include 'partials/right-sidebar.html' %}
-
-    {% include 'partials/footer-scripts.html' %}
-
-</body>
-
-</html>
+{% endblock %}
