@@ -1,6 +1,6 @@
 # Hyper Admin Templates — Implementation Guide
 
-Hyper Admin Templates deliver a catalog of production-ready dashboards, forms, widgets, charts, and UI patterns. This guide turns the repository into a reference manual so that developers and LLMs can quickly assemble new pages (“three KPI cards on the left, a chart on the right, a data table below”) with minimal guesswork.
+Hyper Admin Templates deliver a catalog of production-ready dashboards, forms, widgets, charts, and UI patterns. This guide turns the repository into a reference manual so that developers (_who purchased a license for Hyper Admin Templates_) and LLMs can quickly assemble new pages (“three KPI cards on the left, a chart on the right, a data table below”) with minimal guesswork.
 
 > **Need a visual preview?** Open any file under `base_templates/` in a browser to see the rendered output that matches the Django templates found in `templates/`.
 
