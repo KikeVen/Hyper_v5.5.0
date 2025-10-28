@@ -10,10 +10,13 @@ Hyper Admin Templates deliver a catalog of production-ready dashboards, forms, w
 - [Quick Start](#quick-start)
 - [Django Integration Guide](#django-integration-guide)
 - [Template Architecture](#template-architecture)
+- [Layout & Themes](#layout--themes)
+- [Widgets](#widgets)
 - [Component Catalog](#component-catalog)
 - [Layout Recipes](#layout-recipes)
 - [Adapting the Templates](#adapting-the-templates)
 - [Troubleshooting & Tips](#troubleshooting--tips)
+- [Credits & Plugins](#credits--plugins)
 - [Reference Links](#reference-links)
 
 ---
@@ -241,6 +244,388 @@ Block summary:
 - `syntax-highlight.html` – optional highlight.js assets for code demos.
 
 > **Adapting partials:** Copy to your project and tweak navigation items, logos, or footer text. Because templates use `{% include %}` you only change it once.
+
+---
+
+## Layout & Themes
+
+Hyper provides extensive customization options for layouts and themes through HTML data attributes. All theming is controlled declaratively—no JavaScript configuration needed for basic theme changes.
+
+### Theme Customization via Data Attributes
+
+Hyper's layout engine reads data attributes from the `<html>` tag to apply different visual themes, layout modes, and sidebar configurations. These can be set dynamically in Django templates or views.
+
+#### Available Data Attributes
+
+| Attribute | Type | Options | Description |
+|-----------|------|---------|-------------|
+| `data-theme` | String | `"light"` \| `"dark"` | Overall color scheme (light or dark mode) |
+| `data-layout` | String | `"vertical"` \| `"topnav"` | Main navigation position (sidebar or top) |
+| `data-layout-mode` | String | `"fluid"` \| `"boxed"` \| `"detached"` | Container width and menu attachment |
+| `data-topbar-color` | String | `"light"` \| `"dark"` \| `"brand"` | Topbar color scheme |
+| `data-menu-color` | String | `"light"` \| `"dark"` \| `"brand"` | Sidebar/menu color scheme |
+| `data-sidenav-size` | String | `"default"` \| `"compact"` \| `"condensed"` \| `"sm-hover"` \| `"full"` \| `"fullscreen"` | Sidebar width/size |
+| `data-layout-position` | String | `"fixed"` \| `"scrollable"` | Whether layout scrolls or stays fixed |
+| `data-sidenav-user` | Boolean | `"true"` \| `"false"` | Show/hide user info in sidebar |
+
+### Django Integration: Dynamic Theming
+
+You can control themes dynamically from your Django views or create a user preference system.
+
+#### Method 1: Per-View Theme Control
+
+```python
+# views.py
+from django.views.generic import TemplateView
+
+class CustomThemeView(TemplateView):
+    template_name = "custom-page.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'Custom Dashboard',
+            'theme_mode': 'dark',  # or 'light'
+            'layout_mode': 'detached',  # or 'fluid', 'boxed'
+            'menu_color': 'brand',  # or 'light', 'dark'
+            'sidenav_size': 'condensed',  # or 'default', 'compact'
+        })
+        return context
+```
+
+Then in your template partial `templates/partials/html.html`:
+
+```django
+<!DOCTYPE html>
+<html lang="en"
+      {% if theme_mode %}data-theme="{{ theme_mode }}"{% endif %}
+      {% if layout_mode %}data-layout-mode="{{ layout_mode }}"{% endif %}
+      {% if menu_color %}data-menu-color="{{ menu_color }}"{% endif %}
+      {% if sidenav_size %}data-sidenav-size="{{ sidenav_size }}"{% endif %}>
+```
+
+#### Method 2: User Preference Model
+
+```python
+# models.py
+from django.db import models
+from django.contrib.auth.models import User
+
+class UserThemePreference(models.Model):
+    THEME_CHOICES = [('light', 'Light'), ('dark', 'Dark')]
+    LAYOUT_CHOICES = [('fluid', 'Fluid'), ('boxed', 'Boxed'), ('detached', 'Detached')]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='light')
+    layout_mode = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='fluid')
+    menu_color = models.CharField(max_length=10, default='dark')
+    
+    def __str__(self):
+        return f"{self.user.username}'s theme preferences"
+
+# context_processors.py
+def theme_preferences(request):
+    """Add user's theme preferences to all template contexts."""
+    if request.user.is_authenticated:
+        prefs, _ = UserThemePreference.objects.get_or_create(user=request.user)
+        return {
+            'theme_mode': prefs.theme,
+            'layout_mode': prefs.layout_mode,
+            'menu_color': prefs.menu_color,
+        }
+    return {'theme_mode': 'light', 'layout_mode': 'fluid', 'menu_color': 'dark'}
+```
+
+Add the context processor to `settings.py`:
+
+```python
+TEMPLATES = [
+    {
+        'OPTIONS': {
+            'context_processors': [
+                # ... other processors
+                'yourapp.context_processors.theme_preferences',
+            ],
+        },
+    }
+]
+```
+
+### Pre-built Layout Examples
+
+Hyper includes ready-made layout templates demonstrating different configurations. These are production-ready and can be used as base templates:
+
+| Template File | Layout Type | Data Attributes | Use Case |
+|--------------|-------------|-----------------|----------|
+| `layouts-horizontal.html` | Top navigation | `data-layout="topnav"` | Apps with minimal navigation depth |
+| `layouts-detached.html` | Detached sidebar | `data-layout-mode="detached"` | Modern, card-based layouts |
+| `layouts-full.html` | Full-width | `data-layout-mode="fluid"` | Dashboards with wide charts/tables |
+| `layouts-compact.html` | Compact sidebar | `data-sidenav-size="compact"` | Maximizing content area |
+| `layouts-hover.html` | Hover-expand sidebar | `data-sidenav-size="sm-hover"` | Space-efficient navigation |
+| `layouts-fullscreen.html` | Fullscreen | `data-sidenav-size="fullscreen"` | Immersive content experiences |
+
+#### Example: Switching to Horizontal Layout
+
+To use the horizontal (top navigation) layout:
+
+1. **Set the data attribute** in your HTML tag:
+
+   ```django
+   <html lang="en" data-layout="topnav">
+   ```
+
+2. **Update your menu partial** to use horizontal navigation:
+
+   In `templates/partials/menu.html`, replace the left sidebar include:
+
+   ```django
+   {# Remove or comment out: #}
+   {# {% include 'partials/left-sidebar.html' %} #}
+   
+   {# Add horizontal navigation instead: #}
+   {% include 'partials/horizontal-nav.html' %}
+   ```
+
+3. **See the example** in `templates/layouts-horizontal.html` for a complete working implementation.
+
+#### Example: Detached Layout
+
+For a modern, detached sidebar layout:
+
+```django
+{# templates/custom-detached-base.html #}
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en" data-layout-mode="detached">
+<head>
+    {% include 'partials/title-meta.html' with title='My App' %}
+    {% include 'partials/head-css.html' %}
+</head>
+<body>
+    <div class="wrapper">
+        {% include 'partials/topbar.html' %}
+        {% include 'partials/left-sidebar.html' %}
+        
+        <div class="content-page">
+            <div class="content">
+                <div class="container-fluid">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+            {% include 'partials/footer.html' %}
+        </div>
+    </div>
+    {% include 'partials/footer-scripts.html' %}
+</body>
+</html>
+```
+
+### RTL (Right-to-Left) Support
+
+Hyper includes built-in RTL support for Arabic, Hebrew, and other RTL languages.
+
+To enable RTL:
+
+1. **Add the `dir` attribute** to your HTML tag:
+
+   ```django
+   <html lang="ar" dir="rtl">
+   ```
+
+2. **Load the RTL stylesheet** in `templates/partials/head-css.html`:
+
+   ```django
+   {# Replace the standard CSS with RTL version #}
+   <link href="{% static 'css/app-rtl.min.css' %}" rel="stylesheet" type="text/css" id="app-style">
+   ```
+
+   Or conditionally load based on user preference:
+
+   ```django
+   {% if is_rtl %}
+       <link href="{% static 'css/app-rtl.min.css' %}" rel="stylesheet" type="text/css" id="app-style">
+   {% else %}
+       <link href="{% static 'css/app.min.css' %}" rel="stylesheet" type="text/css" id="app-style">
+   {% endif %}
+   ```
+
+### Common Theme Configurations
+
+Here are some popular theme combinations ready to copy:
+
+#### Dark Mode with Compact Sidebar
+
+```django
+<html lang="en" 
+      data-theme="dark" 
+      data-menu-color="dark" 
+      data-sidenav-size="compact">
+```
+
+#### Light Mode with Detached Layout
+
+```django
+<html lang="en" 
+      data-theme="light" 
+      data-layout-mode="detached" 
+      data-menu-color="light">
+```
+
+#### Brand-Colored Top Navigation
+
+```django
+<html lang="en" 
+      data-layout="topnav" 
+      data-topbar-color="brand">
+```
+
+#### Minimal Hover Sidebar (Space-Saving)
+
+```django
+<html lang="en" 
+      data-theme="light" 
+      data-sidenav-size="sm-hover" 
+      data-menu-color="dark">
+```
+
+### Testing Layouts Locally
+
+To preview different layouts before integrating:
+
+1. Open any layout example from `base_templates/layouts-*.html` in your browser
+2. Inspect the `<html>` tag to see which data attributes are set
+3. Copy the configuration to your Django template's `html.html` partial
+
+### JavaScript Theme Switcher (Optional)
+
+For runtime theme switching without page reload, Hyper includes `app.js` which provides:
+
+```javascript
+// Example: Let users toggle dark mode
+document.getElementById('theme-toggle').addEventListener('click', function() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    
+    // Save preference to backend via AJAX
+    fetch('/api/user/theme/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({theme: newTheme})
+    });
+});
+```
+
+The Hyper `app.js` automatically handles layout recalculations when attributes change.
+
+---
+
+## Widgets
+
+Hyper's widget library spans KPI scorecards, timeline feeds, chat panes, todo lists, and chart-driven summaries. The canonical source is `templates/widgets.html`, which mirrors the official widgets documentation (`pages-demo-widget.html`) and is ready to drop into Django projects.
+
+### Key Locations
+
+- `templates/widgets.html` – Django template containing every widget variant.
+- `base_templates/widgets.html` – Pre-rendered HTML preview for quick visual checks.
+- `static/js/pages/demo.widgets.js` – Initializes ApexCharts sparklines and sample data.
+- `static/js/ui/component.chat.js` – Provides chat widget behaviors and validation hooks.
+- `static/js/ui/component.todo.js` – Powers the todo list interactions and relies on `vendor/moment`.
+
+### Rendering KPI Widgets from Context
+
+```python
+from django.views.generic import TemplateView
+
+
+class WidgetsView(TemplateView):
+   template_name = "widgets.html"
+
+   def get_context_data(self, **kwargs):
+      context = super().get_context_data(**kwargs)
+      context["kpi_widgets"] = [
+         {
+            "label": "Revenue",
+            "value": "$6,254",
+            "delta": "7.00%",
+            "icon": "mdi-currency-btc",
+            "trend_class": "badge bg-info",
+            "trend_icon": "mdi-arrow-down-bold",
+            "note": "Since last month",
+         },
+         {
+            "label": "Growth",
+            "value": "+ 30.56%",
+            "delta": "4.87%",
+            "icon": "mdi-pulse",
+            "trend_class": "text-success",
+            "trend_icon": "mdi-arrow-up-bold",
+            "note": "Since last month",
+         },
+      ]
+      return context
+```
+
+```django
+<div class="row">
+   {% for widget in kpi_widgets %}
+      <div class="col-xxl-3 col-sm-6">
+         <div class="card widget-flat">
+            <div class="card-body">
+               <div class="float-end">
+                  <i class="mdi {{ widget.icon }} widget-icon"></i>
+               </div>
+               <h5 class="text-muted fw-normal mt-0">{{ widget.label }}</h5>
+               <h3 class="mt-3 mb-3">{{ widget.value }}</h3>
+               <p class="mb-0 text-muted">
+                  <span class="{{ widget.trend_class }} me-2">
+                     <i class="mdi {{ widget.trend_icon }}"></i> {{ widget.delta }}
+                  </span>
+                  <span class="text-nowrap">{{ widget.note }}</span>
+               </p>
+            </div>
+         </div>
+      </div>
+   {% endfor %}
+</div>
+```
+
+### Chart and Sparkline Widgets
+
+Include the required vendor scripts and the demo initializer via the `footer_scripts` block. Replace the sample data inside `demo.widgets.js` with live results when wiring to your API.
+
+```django
+{% block footer_scripts %}
+   {{ block.super }}
+   <script src="{% static 'vendor/apexcharts/apexcharts.min.js' %}"></script>
+   <script src="{% static 'vendor/moment/moment.min.js' %}"></script>
+   <script src="{% static 'js/ui/component.chat.js' %}"></script>
+   <script src="{% static 'js/ui/component.todo.js' %}"></script>
+   <script src="{% static 'js/pages/demo.widgets.js' %}"></script>
+{% endblock %}
+```
+
+`data-colors` attributes on the chart containers (for example, `<div id="sales-spark" class="apex-charts" data-colors="#3688fc">`) let you override palettes without editing JavaScript.
+
+### Interactive Widgets
+
+- Chat conversation pane with typing form; validation and scroll behavior come from `component.chat.js`.
+- Todo list with add/archive actions; `component.todo.js` exposes hooks to persist tasks server-side.
+- Timeline and transaction feeds use `data-simplebar` to supply smooth scroll areas.
+- Profile, inbox, and contact cards pair avatars with CTA buttons for quick actions.
+
+### Styling and Extensibility
+
+If you maintain the original SCSS pipeline, edit `src/assets/scss/custom/components/_widgets.scss` before recompiling. In this repo you can append overrides by adding a custom stylesheet in `partials/head-css.html` (for example, `{% static 'css/custom-widgets.css' %}`) so classes such as `widget-flat`, `tilebox-one`, and `text-bg-*` match your brand. Extract recurring groups into partials (e.g., `partials/widgets/kpi-row.html`) when you want reusable widget sets.
+
+### Quick Start Checklist
+
+- Copy the desired widget markup from `templates/widgets.html` into your page or dedicated partial.
+- Add the `footer_scripts` block above so charts, chat, and todo widgets load their JavaScript.
+- Feed live data via Django context or template tags instead of placeholder numbers.
+- Override colors or spacing with a custom stylesheet loaded after `css/app.min.css`.
 
 ---
 
@@ -478,6 +863,114 @@ When reusing components, favor copying from `templates/` (keeps Django tags inta
 - **JS errors in console?** Verify the required vendor scripts are included. Many chart/table demos expect initialization code located under `static/js/pages/`.
 - **Large bundle size?** Remove unused chart libraries from `footer_scripts` and delete unused CSS references.
 - **Need REST data?** Render components with static HTML first, then progressively enhance using fetch/AJAX by targeting the same DOM IDs used in the demos.
+
+---
+
+## Credits & Plugins
+
+The Hyper Admin Templates are built with a carefully curated collection of third-party libraries and plugins. When using these templates in Django, all required assets are already included in the `static/` directory and referenced via `{% static %}` tags in the templates.
+
+### Core Framework & UI
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **Bootstrap** | <https://getbootstrap.com/> | Base responsive framework (v5.3.3) |
+| **jQuery** | <https://jquery.com/> | DOM manipulation and plugin support |
+| **Simplebar** | <https://github.com/Grsmto/simplebar> | Custom scrollbars |
+
+### Icons
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **Material Design Icons** | <https://materialdesignicons.com/> | Primary icon set (`mdi-*` classes) |
+| **Remixicon** | <https://remixicon.com/> | Alternative icon set |
+| **Unicons** | <https://iconscout.com/unicons> | Additional icons |
+| **Lucide Icons** | Included in distribution | Modern icon alternatives |
+
+### Charts & Data Visualization
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **ApexCharts** | <https://apexcharts.com/> | Primary charting library (area, bar, line, pie, radar, etc.) |
+| **Chart.js** | <https://www.chartjs.org/> | Alternative charting (area, bar, line) |
+| **Sparklines** | <https://omnipotent.net/jquery.sparkline/> | Inline mini charts |
+| **Brite Charts** | <https://github.com/eventbrite/britecharts> | D3-based charts |
+| **ECharts** | Included in distribution | Enterprise charting library |
+
+### Tables
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **DataTables** | <https://datatables.net/> | Advanced table features (sorting, filtering, pagination) |
+
+### Forms & Input
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **Select2** | <https://select2.org/> | Enhanced select dropdowns |
+| **Flatpickr** | <https://flatpickr.js.org/> | Modern date/time picker |
+| **Daterangepicker** | <http://www.daterangepicker.com/> | Date range selection |
+| **Bootstrap Datepicker** | <https://bootstrap-datepicker.readthedocs.io/> | Alternative date picker |
+| **Bootstrap Timepicker** | <https://jdewit.github.io/bootstrap-timepicker/> | Time selection |
+| **Input Mask** | <https://github.com/igorescobar/jQuery-Mask-Plugin> | Input formatting/masking |
+| **Bootstrap Touchspin** | <https://github.com/istvan-ujjmeszaros/bootstrap-touchspin> | Numeric spinner |
+| **Bootstrap Maxlength** | <https://mimo84.github.io/bootstrap-maxlength/> | Character counter |
+| **Typeahead** | <https://twitter.github.io/typeahead.js/> | Autocomplete |
+| **Dropzone.js** | <https://www.dropzonejs.com/> | File upload with preview |
+
+### Editors
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **Summernote** | <https://summernote.org/> | WYSIWYG editor |
+| **SimpleMDE** | <https://simplemde.com/> | Markdown editor |
+
+### UI Components & Interactions
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **Dragula** | <https://github.com/bevacqua/dragula> | Drag-and-drop functionality |
+| **Ion Range Slider** | <http://ionden.com/a/plugins/ion.rangeSlider/> | Range slider component |
+| **RateIt** | <https://github.com/gjunge/rateit.js> | Star rating widget |
+| **Toast** | <https://kamranahmed.info/toast> | Notification toasts |
+
+### Application Plugins
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **FullCalendar** | <https://fullcalendar.io/> | Calendar/event management (`apps-calendar.html`) |
+| **Frappe Gantt** | <https://frappe.io/gantt> | Gantt chart (`apps-projects-gantt.html`) |
+| **Form Wizard** | <http://vinceg.github.io/twitter-bootstrap-wizard/> | Multi-step forms (`form-wizard.html`) |
+
+### Maps
+
+| Plugin | URL | Usage in Templates |
+|--------|-----|-------------------|
+| **GMaps** | <https://hpneo.github.io/gmaps/examples.html> | Google Maps integration |
+| **JVectorMap** | <http://jvectormap.com/> | Vector map visualization |
+
+### Graphics & Illustrations
+
+| Resource | URL | Usage in Templates |
+|----------|-----|-------------------|
+| **unDraw** | <https://undraw.co/illustrations> | SVG illustrations used throughout |
+
+### Django Integration Notes
+
+All these plugins are:
+
+- **Pre-bundled** in `static/vendor/` with minified versions
+- **Pre-configured** in templates with correct `{% static %}` paths
+- **Loaded conditionally** – only pages that need specific plugins include their scripts
+
+When deploying with Django:
+
+1. Copy the entire `static/` directory to your project
+2. Add it to `STATICFILES_DIRS` in settings
+3. Run `python manage.py collectstatic` for production
+4. Templates will automatically reference assets via `{% static 'vendor/...' %}`
+
+You do **not** need to install these libraries separately via npm or pip – they're ready to use as static files. Each plugin's official documentation (linked above) provides details on customization and advanced features.
 
 ---
 
